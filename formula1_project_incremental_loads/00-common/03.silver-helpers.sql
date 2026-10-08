@@ -1,0 +1,48 @@
+-- Databricks notebook source
+-- DBTITLE 1,Cell 1
+-- MAGIC %python
+-- MAGIC from pyspark.sql import functions as F
+-- MAGIC from delta.tables import DeltaTable
+-- MAGIC
+-- MAGIC def write_to_silver(
+-- MAGIC     input_df,
+-- MAGIC     target_table,
+-- MAGIC     merge_condition,
+-- MAGIC     columns_to_update
+-- MAGIC ):
+-- MAGIC     """
+-- MAGIC     Creates the Delta table if it does not exist.
+-- MAGIC     Otherwise merges the input DataFrame into the target table.
+-- MAGIC     """
+-- MAGIC
+-- MAGIC     final_df = (
+-- MAGIC         input_df
+-- MAGIC         .withColumn("created_timestamp", F.current_timestamp())
+-- MAGIC         .withColumn("updated_timestamp", F.current_timestamp())
+-- MAGIC     )
+-- MAGIC
+-- MAGIC     if not spark.catalog.tableExists(target_table):
+-- MAGIC         (
+-- MAGIC             final_df.write
+-- MAGIC                 .format("delta")
+-- MAGIC                 .mode("overwrite")
+-- MAGIC                 .saveAsTable(target_table)
+-- MAGIC         )
+-- MAGIC     else:
+-- MAGIC         delta_table = DeltaTable.forName(spark, target_table)
+-- MAGIC         update_map = {column: f"s.{column}" for column in columns_to_update}
+-- MAGIC         update_map["updated_timestamp"] = "s.updated_timestamp"
+-- MAGIC
+-- MAGIC         (
+-- MAGIC             delta_table.alias("t")
+-- MAGIC             .merge(
+-- MAGIC                 final_df.alias("s"),
+-- MAGIC                 merge_condition
+-- MAGIC             )
+-- MAGIC             .whenMatchedUpdate(
+-- MAGIC                 condition="s.batch_id >= t.batch_id",
+-- MAGIC                 set=update_map
+-- MAGIC             )
+-- MAGIC             .whenNotMatchedInsertAll()
+-- MAGIC             .execute()
+-- MAGIC         )
