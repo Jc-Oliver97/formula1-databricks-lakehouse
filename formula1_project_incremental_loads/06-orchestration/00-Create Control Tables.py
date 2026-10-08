@@ -31,4 +31,4 @@ spark.sql(f"""
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC DELETE FROM formula1_incr.control.batch_control;
+# MAGIC #DELETE FROM formula1_incr.control.batch_control;
