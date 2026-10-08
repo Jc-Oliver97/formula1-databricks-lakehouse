@@ -28,7 +28,7 @@ AS
        SUM(r.points) AS total_points,
        COUNT_IF(r.is_win) AS number_of_wins,
        COUNT_IF(r.is_podium) AS number_of_podiums
-FROM formula1.gold.fact_session_results r
+FROM formula1_incr.gold.fact_session_results r
 JOIN formula1.gold.dim_drivers d
 ON r.driver_id = d.driver_id
 GROUP BY r.season, d.driver_id, d.driver_name, d.nationality)
