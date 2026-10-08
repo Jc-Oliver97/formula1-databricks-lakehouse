@@ -19,7 +19,7 @@
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW formula1.gold.vw_construcor_standings
+CREATE OR REPLACE VIEW formula1.gold.vw_constructor_standings
 AS
 WITH constructor_session_results
 AS 
@@ -28,7 +28,7 @@ AS
        SUM(r.points) AS total_points,
        COUNT_IF(r.is_win) AS number_of_wins,
        COUNT_IF(r.is_podium) AS number_of_podiums
-FROM formula1.gold.fact_session_results r
+FROM formula1_incr.gold.fact_session_results r
 JOIN formula1.gold.dim_constructors c
 ON r.constructor_id = c.constructor_id
 GROUP BY r.season, c.constructor_id, c.constructor_name, c.nationality)
